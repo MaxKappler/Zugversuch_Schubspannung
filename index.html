@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kräfte auf schräge Flächen: Schnittprinzip</title>
-    <!-- MathJax for nice LaTeX formula rendering -->
+    <!-- MathJax for TeX rendering -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <!-- Chart.js for function plot -->
@@ -12,7 +12,8 @@
     <style>
         :root {
             --primary: #008080;
-            --accent-red: #d9534f;
+            --accent-red: #e53e3e;
+            --accent-orange: #dd6b20;
             --accent-blue: #2B6CB0;
             --bg-color: #f7fafc;
             --card-bg: #ffffff;
@@ -105,7 +106,7 @@
         .value-display {
             font-weight: bold;
             font-size: 1.1rem;
-            min-width: 140px;
+            min-width: 150px;
             text-align: right;
         }
 
@@ -148,13 +149,13 @@
             gap: 15px;
             justify-content: center;
             margin-top: 10px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
 
         .color-box {
@@ -181,17 +182,17 @@
     <div class="container">
         <!-- LINKER BEREICH: INTERAKTIVES STABMODELL -->
         <div class="card">
-            <h2>Zug-Druck-Stab mit geneigter Ebene</h2>
+            <h2>Zug-Druck-Stab mit geneigter Schnittfläche</h2>
             <p style="font-size: 0.9rem; color: #4a5568; margin-bottom: 10px;">
-                Visuelle Darstellung der Spannungsvektoren an der gedrehten Ebene $ arphi$.
+                Visuelle Darstellung des rotierten Schnitts und der Spannungsvektoren.
             </p>
             <div class="canvas-container">
                 <canvas id="barCanvas" width="550" height="480"></canvas>
             </div>
             <div class="legend">
-                <div class="legend-item"><div class="color-box" style="background:#2d3748;"></div> $\sigma_0$ (Angelegt)</div>
-                <div class="legend-item"><div class="color-box" style="background:#e53e3e;"></div> $\sigma_ arphi$ (Normalspannung)</div>
-                <div class="legend-item"><div class="color-box" style="background:#dd6b20;"></div> $	au_ arphi$ (Schubspannung)</div>
+                <div class="legend-item"><div class="color-box" style="background:#2d3748;"></div> &sigma;<sub>0</sub> = F / A<sub>0</sub></div>
+                <div class="legend-item"><div class="color-box" style="background:#e53e3e;"></div> &sigma;<sub>&phi;</sub> (Normalspannung)</div>
+                <div class="legend-item"><div class="color-box" style="background:#dd6b20;"></div> &tau;<sub>&phi;</sub> (Schubspannung)</div>
             </div>
         </div>
 
@@ -200,14 +201,14 @@
             <div class="card">
                 <!-- SCHIEBEREGLER OBEN RECHTS -->
                 <div class="control-panel">
-                    <label for="phiSlider"><strong>Winkel $ arphi$:</strong></label>
+                    <label for="phiSlider"><strong>Winkel &phi;:</strong></label>
                     <div class="slider-group">
-                        <input type="range" id="phiSlider" min="0" max="90" step="0.5" value="30">
-                        <div class="value-display" id="phiValue">30° (0.52 rad)</div>
+                        <input type="range" id="phiSlider" min="0" max="85" step="0.5" value="30">
+                        <div class="value-display" id="phiValue">30.0° (0.17 &pi;)</div>
                     </div>
                 </div>
 
-                <h3>Spannungsverlauf in Abhängigkeit von $ arphi$</h3>
+                <h3>Spannungsverlauf in Abhängigkeit von &phi;</h3>
                 <div style="height: 250px; position: relative;">
                     <canvas id="chartCanvas"></canvas>
                 </div>
@@ -217,11 +218,11 @@
             <div class="equations-card">
                 <h3>Gleichungen der rotierten Ebene</h3>
                 <div class="eq-list">
-                    <div><strong>Schnittfläche:</strong> $A_ arphi = rac{A_0}{\cos arphi}$</div>
-                    <div><strong>Normalspannung:</strong> $\sigma_ arphi = rac{F_\perp}{A_ arphi} = \sigma_0 \cos^2 arphi$</div>
-                    <div><strong>Schubspannung:</strong> $	au_ arphi = rac{F_\parallel}{A_ arphi} = \sigma_0 \sin arphi \cos arphi = rac{\sigma_0}{2} \sin(2 arphi)$</div>
+                    <div><strong>Schnittfläche:</strong> \( A_\phi = rac{A_0}{\cos\phi} \)</div>
+                    <div><strong>Normalspannung:</strong> \( \sigma_\phi = rac{F_\perp}{A_\phi} = rac{F}{A_0} \cos^2\phi = \sigma_0 \cos^2\phi \)</div>
+                    <div><strong>Schubspannung:</strong> \( 	au_\phi = rac{F_\parallel}{A_\phi} = rac{F}{A_0} \sin\phi \cos\phi = rac{\sigma_0}{2} \sin(2\phi) \)</div>
                     <div style="color: #c53030; font-weight: bold; margin-top: 5px;">
-                        Max. Schubspannung bei $ arphi = 45^\circ$: $	au_{\max} = rac{\sigma_0}{2}$
+                        Maximalwert der Schubspannung bei \( \phi = 45^\circ \): \( 	au_{\max} = rac{\sigma_0}{2} = rac{F}{2 A_0} \)
                     </div>
                 </div>
             </div>
@@ -233,27 +234,22 @@
     </footer>
 
     <script>
-        // DOM Elements
         const slider = document.getElementById('phiSlider');
         const valueDisplay = document.getElementById('phiValue');
         const barCanvas = document.getElementById('barCanvas');
         const ctx = barCanvas.getContext('2d');
 
-        // Parameters
-        const sigma_0 = 100; // Reference tension stress
-
         // Setup Chart.js
         const chartCtx = document.getElementById('chartCanvas').getContext('2d');
         
-        // Generate dataset points
         const degrees = [];
-        const sigmaData = [];
-        const tauData = [];
+        const sigmaFactors = [];
+        const tauFactors = [];
         for (let d = 0; d <= 90; d += 1) {
             degrees.push(d);
             const rad = d * Math.PI / 180;
-            sigmaData.push(sigma_0 * Math.pow(Math.cos(rad), 2));
-            tauData.push((sigma_0 / 2) * Math.sin(2 * rad));
+            sigmaFactors.push(Math.pow(Math.cos(rad), 2));
+            tauFactors.push(0.5 * Math.sin(2 * rad));
         }
 
         const chart = new Chart(chartCtx, {
@@ -263,29 +259,36 @@
                 datasets: [
                     {
                         label: 'Normalspannung σ_φ',
-                        data: sigmaData,
+                        data: sigmaFactors,
                         borderColor: '#e53e3e',
                         backgroundColor: 'rgba(229, 62, 62, 0.1)',
                         borderWidth: 2,
                         pointRadius: 0,
-                        fill: false
+                        tension: 0.1
                     },
                     {
                         label: 'Schubspannung τ_φ',
-                        data: tauData,
+                        data: tauFactors,
                         borderColor: '#dd6b20',
                         backgroundColor: 'rgba(221, 107, 32, 0.1)',
                         borderWidth: 2,
                         pointRadius: 0,
-                        fill: false
+                        tension: 0.1
                     },
                     {
-                        label: 'Aktueller Zustand',
-                        data: [],
-                        borderColor: '#319795',
-                        backgroundColor: '#319795',
+                        label: 'σ_φ(φ)',
+                        data: [{x: 30, y: Math.pow(Math.cos(30*Math.PI/180), 2)}],
+                        borderColor: '#e53e3e',
+                        backgroundColor: '#e53e3e',
                         pointRadius: 6,
-                        pointHoverRadius: 8,
+                        showLine: false
+                    },
+                    {
+                        label: 'τ_φ(φ)',
+                        data: [{x: 30, y: 0.5*Math.sin(2*30*Math.PI/180)}],
+                        borderColor: '#dd6b20',
+                        backgroundColor: '#dd6b20',
+                        pointRadius: 6,
                         showLine: false
                     }
                 ]
@@ -296,20 +299,27 @@
                 animation: false,
                 scales: {
                     x: {
+                        type: 'linear',
                         title: { display: true, text: 'Winkel φ (Grad)' },
+                        min: 0,
+                        max: 90,
                         ticks: { stepSize: 15 }
                     },
                     y: {
-                        title: { display: true, text: 'Spannung (MPa / relativ)' },
+                        title: { display: true, text: 'Spannungsfaktor (Vielfaches von σ₀ = F/A₀)' },
                         min: 0,
-                        max: 110
+                        max: 1.1
                     }
                 },
                 plugins: {
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}`;
+                                if (context.datasetIndex === 0 || context.datasetIndex === 2) {
+                                    return `σ_φ = ${context.parsed.y.toFixed(2)} · (F/A₀)`;
+                                } else {
+                                    return `τ_φ = ${context.parsed.y.toFixed(2)} · (F/A₀)`;
+                                }
                             }
                         }
                     }
@@ -317,8 +327,8 @@
             }
         });
 
-        // Draw Arrow Utility
-        function drawArrow(ctx, fromx, fromy, tox, toy, color, width = 2, headLength = 10) {
+        // Utility: Draw Arrow
+        function drawArrow(ctx, fromx, fromy, tox, toy, color, width = 2.5, headLength = 10, label = "") {
             const dx = tox - fromx;
             const dy = toy - fromy;
             const angle = Math.atan2(dy, dx);
@@ -328,23 +338,26 @@
             ctx.fillStyle = color;
             ctx.lineWidth = width;
 
-            // Line
             ctx.beginPath();
             ctx.moveTo(fromx, fromy);
             ctx.lineTo(tox, toy);
             ctx.stroke();
 
-            // Arrow head
             ctx.beginPath();
             ctx.moveTo(tox, toy);
             ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 6), toy - headLength * Math.sin(angle - Math.PI / 6));
             ctx.lineTo(tox - headLength * Math.cos(angle + Math.PI / 6), toy - headLength * Math.sin(angle + Math.PI / 6));
             ctx.closePath();
             ctx.fill();
+
+            if (label) {
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText(label, tox + 10 * Math.cos(angle), toy + 10 * Math.sin(angle));
+            }
             ctx.restore();
         }
 
-        // Draw Main Bar and Plane
+        // Main 2D Drawing Function
         function drawScene(phiDeg) {
             const phiRad = phiDeg * Math.PI / 180;
             const w = barCanvas.width;
@@ -352,198 +365,150 @@
 
             ctx.clearRect(0, 0, w, h);
 
-            // Center of the bar
             const cx = w / 2;
             const cy = h / 2;
             const barWidth = 120;
+            const barRadius = barWidth / 2;
             const barHeight = 280;
 
-            const left = cx - barWidth / 2;
-            const right = cx + barWidth / 2;
+            const left = cx - barRadius;
+            const right = cx + barRadius;
             const top = cy - barHeight / 2;
             const bottom = cy + barHeight / 2;
 
-            // 1. Draw Cylindrical Bar (Zusammengesetzter Zug-Druck-Stab)
+            // 1. Render Cylindrical Bar Body
             ctx.save();
-            
-            // Bar fill gradient
             const grad = ctx.createLinearGradient(left, 0, right, 0);
-            grad.addColorStop(0, '#e2e8f0');
-            grad.addColorStop(0.5, '#ffffff');
-            grad.addColorStop(1, '#cbd5e0');
+            grad.addColorStop(0, '#cbd5e0');
+            grad.addColorStop(0.3, '#ffffff');
+            grad.addColorStop(1, '#a0aec0');
 
-            // Upper segment outline
             ctx.fillStyle = grad;
             ctx.strokeStyle = '#4a5568';
             ctx.lineWidth = 2;
 
-            // Render full bar body
             ctx.beginPath();
             ctx.rect(left, top, barWidth, barHeight);
             ctx.fill();
             ctx.stroke();
 
-            // Cylinder Top Ellipse
+            // Cylinder Ends (Ellipses)
             ctx.beginPath();
-            ctx.ellipse(cx, top, barWidth/2, 18, 0, 0, Math.PI * 2);
-            ctx.fillStyle = '#edf2f7';
+            ctx.ellipse(cx, top, barRadius, 16, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#e2e8f0';
             ctx.fill();
             ctx.stroke();
 
-            // Cylinder Bottom Ellipse
             ctx.beginPath();
-            ctx.ellipse(cx, bottom, barWidth/2, 18, 0, 0, Math.PI * 2);
+            ctx.ellipse(cx, bottom, barRadius, 16, 0, 0, Math.PI * 2);
             ctx.fillStyle = '#cbd5e0';
             ctx.fill();
             ctx.stroke();
-
             ctx.restore();
 
-            // 2. Applied External Load Arrows (Zugkraft F / Normalspannung sigma_0)
-            const arrowLen = 50;
-            // Top pull arrow
-            drawArrow(ctx, cx, top - 5, cx, top - 5 - arrowLen, '#2d3748', 3, 12);
-            ctx.font = 'bold 16px sans-serif';
-            ctx.fillStyle = '#2d3748';
-            ctx.fillText('F (σ₀)', cx + 15, top - 30);
+            // 2. Applied Load Vectors F (sigma_0 = F/A_0)
+            drawArrow(ctx, cx, top - 2, cx, top - 50, '#2d3748', 3, 12, "F (σ₀)");
+            drawArrow(ctx, cx, bottom + 2, cx, bottom + 50, '#2d3748', 3, 12, "F (σ₀)");
 
-            // Bottom pull arrow
-            drawArrow(ctx, cx, bottom + 5, cx, bottom + 5 + arrowLen, '#2d3748', 3, 12);
-            ctx.fillText('F (σ₀)', cx + 15, bottom + 40);
-
-            // 3. Dashed Horizontal Plane (Referenz-Ebene phi = 0)
+            // 3. Dashed Horizontal Reference Line (phi = 0)
             ctx.save();
-            ctx.setLineDash([6, 6]);
-            ctx.strokeStyle = '#a0aec0';
-            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = '#718096';
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.moveTo(left - 30, cy);
-            ctx.lineTo(right + 30, cy);
+            ctx.lineTo(right + 35, cy);
             ctx.stroke();
             ctx.restore();
 
-            ctx.font = '13px sans-serif';
+            ctx.font = '12px sans-serif';
             ctx.fillStyle = '#718096';
-            ctx.fillText('Horizontale Ebene (φ = 0°)', right + 35, cy + 4);
+            ctx.fillText('Horizontale Ebene (φ = 0°)', right + 40, cy + 4);
 
-            // 4. Rotated Cutting Plane (In Abhängigkeit von phi)
-            ctx.save();
-            ctx.strokeStyle = '#2b6cb0'; // Accent Blue for Plane
-            ctx.lineWidth = 3;
+            // 4. Rotated Ellipse Cut Plane (Extends exactly to cylinder edges: radius_x = barRadius / cos(phi))
+            const rx = barRadius / Math.max(0.08, Math.cos(phiRad)); // Ellipse semi-major axis across cylinder
+            const ry = 14; // Ellipse semi-minor axis
 
-            // Plane line passing through (cx, cy) rotated by phi
-            // Line angle with horizontal is phi (counter-clockwise)
-            const dx = (barWidth / 2 + 30) * Math.cos(-phiRad);
-            const dy = (barWidth / 2 + 30) * Math.sin(-phiRad);
-
-            ctx.beginPath();
-            ctx.moveTo(cx - dx, cy - dy);
-            ctx.lineTo(cx + dx, cy + dy);
-            ctx.stroke();
-            ctx.restore();
-
-            // Highlight plane ellipse/cut representation
             ctx.save();
             ctx.translate(cx, cy);
             ctx.rotate(-phiRad);
+
+            // Ellipse Cut Fill & Contour
             ctx.beginPath();
-            ctx.ellipse(0, 0, barWidth/2, 12, 0, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(66, 153, 225, 0.2)';
+            ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(43, 108, 176, 0.25)';
             ctx.fill();
             ctx.strokeStyle = '#2b6cb0';
-            ctx.lineWidth = 1.5;
+            ctx.lineWidth = 2.5;
             ctx.stroke();
             ctx.restore();
 
-            // Label Rotated Plane
-            ctx.fillStyle = '#2b6cb0';
-            ctx.font = 'bold 14px sans-serif';
-            ctx.fillText('Gleitebene A_φ', cx + dx + 10, cy + dy + 5);
-
-            // 5. Angle Arc (phi)
+            // 5. Angle Phi (Correctly drawn from horizontal reference to rotated plane line)
             ctx.save();
+            const arcRadius = 45;
             ctx.beginPath();
-            ctx.arc(cx + 40, cy, 30, 0, -phiRad, true);
+            ctx.arc(cx, cy, arcRadius, 0, -phiRad, true);
             ctx.strokeStyle = '#d69e2e';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.stroke();
-            
-            // Angle Label
+
+            // Label Phi
             const midAngle = -phiRad / 2;
             ctx.fillStyle = '#d69e2e';
-            ctx.font = 'bold 15px sans-serif';
-            ctx.fillText('φ', cx + 55 * Math.cos(midAngle), cy + 55 * Math.sin(midAngle) + 5);
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText('φ', cx + (arcRadius + 15) * Math.cos(midAngle), cy + (arcRadius + 15) * Math.sin(midAngle) + 5);
             ctx.restore();
 
-            // 6. Vector Representations at the Center of Plane
-            // Normal to the rotated plane (Normalenvektor n)
-            // Plane is at angle -phiRad to horizontal.
-            // Normal vector angle = -phiRad - Math.PI/2 (pointing outwards) or + Math.PI/2
-            const normalAngle = -phiRad - Math.PI / 2;
-            const tangentAngle = -phiRad; // parallel to plane
+            // 6. Interactive Stress Vectors at Plane Center
+            const normalAngle = -phiRad - Math.PI / 2; // Normal vector to rotated plane
+            const tangentAngle = -phiRad;             // Shear vector parallel to rotated plane
 
-            // Calculating Stress Magnitudes
-            const sigma_phi = sigma_0 * Math.pow(Math.cos(phiRad), 2);
-            const tau_phi = (sigma_0 / 2) * Math.sin(2 * phiRad);
+            const sigmaFactor = Math.pow(Math.cos(phiRad), 2);
+            const tauFactor = 0.5 * Math.sin(2 * phiRad);
 
-            const scale = 1.2; // Scale factor for vector drawing
+            const arrowScale = 100; // Visual scaling factor for vectors
 
-            // Normal Stress Vector (sigma_phi) - RED
-            if (sigma_phi > 1) {
-                const nx = cx + sigma_phi * scale * Math.cos(normalAngle);
-                const ny = cy + sigma_phi * scale * Math.sin(normalAngle);
-                drawArrow(ctx, cx, cy, nx, ny, '#e53e3e', 3, 10);
-                ctx.fillStyle = '#e53e3e';
-                ctx.font = 'bold 14px sans-serif';
-                ctx.fillText(`σ_φ (${sigma_phi.toFixed(1)})`, nx + 10, ny);
+            // Normal Stress Vector sigma_phi (RED)
+            if (sigmaFactor > 0.02) {
+                const nx = cx + sigmaFactor * arrowScale * Math.cos(normalAngle);
+                const ny = cy + sigmaFactor * arrowScale * Math.sin(normalAngle);
+                drawArrow(ctx, cx, cy, nx, ny, '#e53e3e', 3, 10, "σ_φ");
             }
 
-            // Shear Stress Vector (tau_phi) - ORANGE
-            if (tau_phi > 1) {
-                const tx = cx + tau_phi * scale * Math.cos(tangentAngle);
-                const ty = cy + tau_phi * scale * Math.sin(tangentAngle);
-                drawArrow(ctx, cx, cy, tx, ty, '#dd6b20', 3, 10);
-                ctx.fillStyle = '#dd6b20';
-                ctx.font = 'bold 14px sans-serif';
-                ctx.fillText(`τ_φ (${tau_phi.toFixed(1)})`, tx + 10, ty - 10);
+            // Shear Stress Vector tau_phi (ORANGE)
+            if (tauFactor > 0.02) {
+                const tx = cx + tauFactor * arrowScale * Math.cos(tangentAngle);
+                const ty = cy + tauFactor * arrowScale * Math.sin(tangentAngle);
+                drawArrow(ctx, cx, cy, tx, ty, '#dd6b20', 3, 10, "τ_φ");
             }
 
-            // Applied Stress Reference Vector (sigma_0) - DARK GRAY
-            const sx = cx;
-            const sy = cy - sigma_0 * 0.8;
-            drawArrow(ctx, cx, cy, sx, sy, '#718096', 2, 8);
-            ctx.fillStyle = '#718096';
-            ctx.font = '12px sans-serif';
-            ctx.fillText('σ₀', sx - 20, sy);
+            // Applied Stress Reference Vector sigma_0 (DARK GRAY)
+            drawArrow(ctx, cx, cy, cx, cy - 80, '#718096', 1.5, 7, "σ₀");
         }
 
-        // Update Function
+        // Update Handler
         function update() {
             const phiDeg = parseFloat(slider.value);
             const phiRad = phiDeg * Math.PI / 180;
             
-            // Update display
             const piFrac = (phiDeg / 180).toFixed(2);
-            valueDisplay.innerHTML = `${phiDeg}° (${piFrac}π / ${(phiRad).toFixed(2)} rad)`;
+            valueDisplay.innerHTML = `${phiDeg.toFixed(1)}° (${piFrac} &pi; rad)`;
 
-            // Redraw 2D Mechanics Canvas
+            // Redraw 2D Canvas Scene
             drawScene(phiDeg);
 
-            // Update Chart Active Marker
-            const currentSigma = sigma_0 * Math.pow(Math.cos(phiRad), 2);
-            const currentTau = (sigma_0 / 2) * Math.sin(2 * phiRad);
+            // Update Chart Tracking Points strictly on the curve datasets
+            const sigmaVal = Math.pow(Math.cos(phiRad), 2);
+            const tauVal = 0.5 * Math.sin(2 * phiRad);
 
-            chart.data.datasets[2].data = [
-                { x: phiDeg, y: currentSigma },
-                { x: phiDeg, y: currentTau }
-            ];
+            chart.data.datasets[2].data = [{ x: phiDeg, y: sigmaVal }];
+            chart.data.datasets[3].data = [{ x: phiDeg, y: tauVal }];
             chart.update();
         }
 
-        // Event Listener
         slider.addEventListener('input', update);
 
-        // Initial rendering
+        // Initial trigger
         update();
     </script>
 </body>
