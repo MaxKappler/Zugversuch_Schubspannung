@@ -103,15 +103,19 @@
             cursor: pointer;
         }
 
+        /* Konstante Größe für die Anzeige-Box des Schiebereglers */
         .value-display {
             font-weight: bold;
             font-size: 1.1rem;
-            min-width: 200px;
+            width: 250px; /* Feste Breite zur Vermeidung von Größenänderungen */
+            min-width: 250px;
+            max-width: 250px;
             text-align: right;
             display: flex;
             align-items: center;
             justify-content: flex-end;
             gap: 6px;
+            white-space: nowrap;
         }
 
         .fraction {
@@ -357,10 +361,9 @@
                 },
                 plugins: {
                     legend: {
-                        onClick: null, // Verhindert das Ausblenden beim Klicken
+                        onClick: null,
                         labels: {
                             filter: function(item) {
-                                // Zeige nur die zwei Hauptkurven in der Legende
                                 return item.datasetIndex === 0 || item.datasetIndex === 1;
                             }
                         }
