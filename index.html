@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kräfte auf schräge Flächen: Schnittprinzip</title>
+    <!-- MathJax for nice LaTeX formula rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Chart.js for function plot -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #008080;
+            --accent-red: #d9534f;
+            --accent-blue: #2B6CB0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            display: inline-block;
+            border: 2px solid var(--accent-red);
+            color: var(--accent-red);
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .control-panel {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+        }
+
+        input[type=range] {
+            flex-grow: 1;
+            height: 8px;
+            border-radius: 5px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .value-display {
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-width: 140px;
+            text-align: right;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 480px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+        }
+
+        .equations-card {
+            margin-top: 20px;
+            background: #f8fafc;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .equations-card h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .eq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 1.05rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .color-box {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Kräfte auf schräge Flächen: Das Schnittprinzip</h1>
+        <div class="subtitle">Aus einer Normalspannung kann lokal eine Schubspannung werden</div>
+    </header>
+
+    <div class="container">
+        <!-- LINKER BEREICH: INTERAKTIVES STABMODELL -->
+        <div class="card">
+            <h2>Zug-Druck-Stab mit geneigter Ebene</h2>
+            <p style="font-size: 0.9rem; color: #4a5568; margin-bottom: 10px;">
+                Visuelle Darstellung der Spannungsvektoren an der gedrehten Ebene $ arphi$.
+            </p>
+            <div class="canvas-container">
+                <canvas id="barCanvas" width="550" height="480"></canvas>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="color-box" style="background:#2d3748;"></div> $\sigma_0$ (Angelegt)</div>
+                <div class="legend-item"><div class="color-box" style="background:#e53e3e;"></div> $\sigma_ arphi$ (Normalspannung)</div>
+                <div class="legend-item"><div class="color-box" style="background:#dd6b20;"></div> $	au_ arphi$ (Schubspannung)</div>
+            </div>
+        </div>
+
+        <!-- RECHTER BEREICH: STEUERUNG, GRAPH & GLEICHUNGEN -->
+        <div>
+            <div class="card">
+                <!-- SCHIEBEREGLER OBEN RECHTS -->
+                <div class="control-panel">
+                    <label for="phiSlider"><strong>Winkel $ arphi$:</strong></label>
+                    <div class="slider-group">
+                        <input type="range" id="phiSlider" min="0" max="90" step="0.5" value="30">
+                        <div class="value-display" id="phiValue">30° (0.52 rad)</div>
+                    </div>
+                </div>
+
+                <h3>Spannungsverlauf in Abhängigkeit von $ arphi$</h3>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="chartCanvas"></canvas>
+                </div>
+            </div>
+
+            <!-- GLEICHUNGEN -->
+            <div class="equations-card">
+                <h3>Gleichungen der rotierten Ebene</h3>
+                <div class="eq-list">
+                    <div><strong>Schnittfläche:</strong> $A_ arphi = rac{A_0}{\cos arphi}$</div>
+                    <div><strong>Normalspannung:</strong> $\sigma_ arphi = rac{F_\perp}{A_ arphi} = \sigma_0 \cos^2 arphi$</div>
+                    <div><strong>Schubspannung:</strong> $	au_ arphi = rac{F_\parallel}{A_ arphi} = \sigma_0 \sin arphi \cos arphi = rac{\sigma_0}{2} \sin(2 arphi)$</div>
+                    <div style="color: #c53030; font-weight: bold; margin-top: 5px;">
+                        Max. Schubspannung bei $ arphi = 45^\circ$: $	au_{\max} = rac{\sigma_0}{2}$
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Interaktives Lehrmodul zur Technischen Mechanik | GitHub Pages Web-App</p>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const slider = document.getElementById('phiSlider');
+        const valueDisplay = document.getElementById('phiValue');
+        const barCanvas = document.getElementById('barCanvas');
+        const ctx = barCanvas.getContext('2d');
+
+        // Parameters
+        const sigma_0 = 100; // Reference tension stress
+
+        // Setup Chart.js
+        const chartCtx = document.getElementById('chartCanvas').getContext('2d');
+        
+        // Generate dataset points
+        const degrees = [];
+        const sigmaData = [];
+        const tauData = [];
+        for (let d = 0; d <= 90; d += 1) {
+            degrees.push(d);
+            const rad = d * Math.PI / 180;
+            sigmaData.push(sigma_0 * Math.pow(Math.cos(rad), 2));
+            tauData.push((sigma_0 / 2) * Math.sin(2 * rad));
+        }
+
+        const chart = new Chart(chartCtx, {
+            type: 'line',
+            data: {
+                labels: degrees,
+                datasets: [
+                    {
+                        label: 'Normalspannung σ_φ',
+                        data: sigmaData,
+                        borderColor: '#e53e3e',
+                        backgroundColor: 'rgba(229, 62, 62, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: 'Schubspannung τ_φ',
+                        data: tauData,
+                        borderColor: '#dd6b20',
+                        backgroundColor: 'rgba(221, 107, 32, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: 'Aktueller Zustand',
+                        data: [],
+                        borderColor: '#319795',
+                        backgroundColor: '#319795',
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        showLine: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Winkel φ (Grad)' },
+                        ticks: { stepSize: 15 }
+                    },
+                    y: {
+                        title: { display: true, text: 'Spannung (MPa / relativ)' },
+                        min: 0,
+                        max: 110
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Draw Arrow Utility
+        function drawArrow(ctx, fromx, fromy, tox, toy, color, width = 2, headLength = 10) {
+            const dx = tox - fromx;
+            const dy = toy - fromy;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+
+            // Line
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.stroke();
+
+            // Arrow head
+            ctx.beginPath();
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 6), toy - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(tox - headLength * Math.cos(angle + Math.PI / 6), toy - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // Draw Main Bar and Plane
+        function drawScene(phiDeg) {
+            const phiRad = phiDeg * Math.PI / 180;
+            const w = barCanvas.width;
+            const h = barCanvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Center of the bar
+            const cx = w / 2;
+            const cy = h / 2;
+            const barWidth = 120;
+            const barHeight = 280;
+
+            const left = cx - barWidth / 2;
+            const right = cx + barWidth / 2;
+            const top = cy - barHeight / 2;
+            const bottom = cy + barHeight / 2;
+
+            // 1. Draw Cylindrical Bar (Zusammengesetzter Zug-Druck-Stab)
+            ctx.save();
+            
+            // Bar fill gradient
+            const grad = ctx.createLinearGradient(left, 0, right, 0);
+            grad.addColorStop(0, '#e2e8f0');
+            grad.addColorStop(0.5, '#ffffff');
+            grad.addColorStop(1, '#cbd5e0');
+
+            // Upper segment outline
+            ctx.fillStyle = grad;
+            ctx.strokeStyle = '#4a5568';
+            ctx.lineWidth = 2;
+
+            // Render full bar body
+            ctx.beginPath();
+            ctx.rect(left, top, barWidth, barHeight);
+            ctx.fill();
+            ctx.stroke();
+
+            // Cylinder Top Ellipse
+            ctx.beginPath();
+            ctx.ellipse(cx, top, barWidth/2, 18, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#edf2f7';
+            ctx.fill();
+            ctx.stroke();
+
+            // Cylinder Bottom Ellipse
+            ctx.beginPath();
+            ctx.ellipse(cx, bottom, barWidth/2, 18, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#cbd5e0';
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.restore();
+
+            // 2. Applied External Load Arrows (Zugkraft F / Normalspannung sigma_0)
+            const arrowLen = 50;
+            // Top pull arrow
+            drawArrow(ctx, cx, top - 5, cx, top - 5 - arrowLen, '#2d3748', 3, 12);
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillStyle = '#2d3748';
+            ctx.fillText('F (σ₀)', cx + 15, top - 30);
+
+            // Bottom pull arrow
+            drawArrow(ctx, cx, bottom + 5, cx, bottom + 5 + arrowLen, '#2d3748', 3, 12);
+            ctx.fillText('F (σ₀)', cx + 15, bottom + 40);
+
+            // 3. Dashed Horizontal Plane (Referenz-Ebene phi = 0)
+            ctx.save();
+            ctx.setLineDash([6, 6]);
+            ctx.strokeStyle = '#a0aec0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(left - 30, cy);
+            ctx.lineTo(right + 30, cy);
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.font = '13px sans-serif';
+            ctx.fillStyle = '#718096';
+            ctx.fillText('Horizontale Ebene (φ = 0°)', right + 35, cy + 4);
+
+            // 4. Rotated Cutting Plane (In Abhängigkeit von phi)
+            ctx.save();
+            ctx.strokeStyle = '#2b6cb0'; // Accent Blue for Plane
+            ctx.lineWidth = 3;
+
+            // Plane line passing through (cx, cy) rotated by phi
+            // Line angle with horizontal is phi (counter-clockwise)
+            const dx = (barWidth / 2 + 30) * Math.cos(-phiRad);
+            const dy = (barWidth / 2 + 30) * Math.sin(-phiRad);
+
+            ctx.beginPath();
+            ctx.moveTo(cx - dx, cy - dy);
+            ctx.lineTo(cx + dx, cy + dy);
+            ctx.stroke();
+            ctx.restore();
+
+            // Highlight plane ellipse/cut representation
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(-phiRad);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, barWidth/2, 12, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(66, 153, 225, 0.2)';
+            ctx.fill();
+            ctx.strokeStyle = '#2b6cb0';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.restore();
+
+            // Label Rotated Plane
+            ctx.fillStyle = '#2b6cb0';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('Gleitebene A_φ', cx + dx + 10, cy + dy + 5);
+
+            // 5. Angle Arc (phi)
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx + 40, cy, 30, 0, -phiRad, true);
+            ctx.strokeStyle = '#d69e2e';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Angle Label
+            const midAngle = -phiRad / 2;
+            ctx.fillStyle = '#d69e2e';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.fillText('φ', cx + 55 * Math.cos(midAngle), cy + 55 * Math.sin(midAngle) + 5);
+            ctx.restore();
+
+            // 6. Vector Representations at the Center of Plane
+            // Normal to the rotated plane (Normalenvektor n)
+            // Plane is at angle -phiRad to horizontal.
+            // Normal vector angle = -phiRad - Math.PI/2 (pointing outwards) or + Math.PI/2
+            const normalAngle = -phiRad - Math.PI / 2;
+            const tangentAngle = -phiRad; // parallel to plane
+
+            // Calculating Stress Magnitudes
+            const sigma_phi = sigma_0 * Math.pow(Math.cos(phiRad), 2);
+            const tau_phi = (sigma_0 / 2) * Math.sin(2 * phiRad);
+
+            const scale = 1.2; // Scale factor for vector drawing
+
+            // Normal Stress Vector (sigma_phi) - RED
+            if (sigma_phi > 1) {
+                const nx = cx + sigma_phi * scale * Math.cos(normalAngle);
+                const ny = cy + sigma_phi * scale * Math.sin(normalAngle);
+                drawArrow(ctx, cx, cy, nx, ny, '#e53e3e', 3, 10);
+                ctx.fillStyle = '#e53e3e';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText(`σ_φ (${sigma_phi.toFixed(1)})`, nx + 10, ny);
+            }
+
+            // Shear Stress Vector (tau_phi) - ORANGE
+            if (tau_phi > 1) {
+                const tx = cx + tau_phi * scale * Math.cos(tangentAngle);
+                const ty = cy + tau_phi * scale * Math.sin(tangentAngle);
+                drawArrow(ctx, cx, cy, tx, ty, '#dd6b20', 3, 10);
+                ctx.fillStyle = '#dd6b20';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText(`τ_φ (${tau_phi.toFixed(1)})`, tx + 10, ty - 10);
+            }
+
+            // Applied Stress Reference Vector (sigma_0) - DARK GRAY
+            const sx = cx;
+            const sy = cy - sigma_0 * 0.8;
+            drawArrow(ctx, cx, cy, sx, sy, '#718096', 2, 8);
+            ctx.fillStyle = '#718096';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('σ₀', sx - 20, sy);
+        }
+
+        // Update Function
+        function update() {
+            const phiDeg = parseFloat(slider.value);
+            const phiRad = phiDeg * Math.PI / 180;
+            
+            // Update display
+            const piFrac = (phiDeg / 180).toFixed(2);
+            valueDisplay.innerHTML = `${phiDeg}° (${piFrac}π / ${(phiRad).toFixed(2)} rad)`;
+
+            // Redraw 2D Mechanics Canvas
+            drawScene(phiDeg);
+
+            // Update Chart Active Marker
+            const currentSigma = sigma_0 * Math.pow(Math.cos(phiRad), 2);
+            const currentTau = (sigma_0 / 2) * Math.sin(2 * phiRad);
+
+            chart.data.datasets[2].data = [
+                { x: phiDeg, y: currentSigma },
+                { x: phiDeg, y: currentTau }
+            ];
+            chart.update();
+        }
+
+        // Event Listener
+        slider.addEventListener('input', update);
+
+        // Initial rendering
+        update();
+    </script>
+</body>
+</html>
