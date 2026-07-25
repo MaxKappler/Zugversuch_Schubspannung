@@ -282,7 +282,7 @@
                 labels: degrees,
                 datasets: [
                     {
-                        label: 'Normalspannung σ_φ',
+                        label: 'Normalspannung σᵩ',
                         data: sigmaFactors,
                         borderColor: '#e53e3e',
                         backgroundColor: 'rgba(229, 62, 62, 0.1)',
@@ -291,7 +291,7 @@
                         tension: 0.1
                     },
                     {
-                        label: 'Schubspannung τ_φ',
+                        label: 'Schubspannung τᵩ',
                         data: tauFactors,
                         borderColor: '#dd6b20',
                         backgroundColor: 'rgba(221, 107, 32, 0.1)',
@@ -300,7 +300,7 @@
                         tension: 0.1
                     },
                     {
-                        label: 'σ_φ',
+                        label: 'σᵩ',
                         data: [{x: 30, y: Math.pow(Math.cos(30*Math.PI/180), 2)}],
                         borderColor: '#e53e3e',
                         backgroundColor: '#e53e3e',
@@ -308,7 +308,7 @@
                         showLine: false
                     },
                     {
-                        label: 'τ_φ',
+                        label: 'τᵩ',
                         data: [{x: 30, y: 0.5*Math.sin(2*30*Math.PI/180)}],
                         borderColor: '#dd6b20',
                         backgroundColor: '#dd6b20',
@@ -330,17 +330,37 @@
                         ticks: { stepSize: 15 }
                     },
                     y: {
-                        title: { display: true, text: 'σ_φ, τ_φ' },
+                        title: { 
+                            display: true, 
+                            text: 'σᵩ, τᵩ',
+                            font: { size: 14, weight: 'bold' }
+                        },
                         min: 0,
-                        max: 1.1
+                        max: 1.1,
+                        afterBuildTicks: function(scale) {
+                            scale.ticks = [
+                                { value: 0 },
+                                { value: 0.5 },
+                                { value: 1.0 }
+                            ];
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                if (value === 0) return '0';
+                                if (value === 0.5) return 'σ₀ / 2';
+                                if (value === 1.0) return 'σ₀';
+                                return '';
+                            },
+                            font: { size: 13 }
+                        }
                     }
                 },
                 plugins: {
                     legend: {
-                        onClick: null, // Deaktiviert das Verstecken/Ausblenden per Klick
+                        onClick: null, // Verhindert das Ausblenden beim Klicken
                         labels: {
                             filter: function(item) {
-                                // Nur die Hauptkurven in der Legende anzeigen
+                                // Zeige nur die zwei Hauptkurven in der Legende
                                 return item.datasetIndex === 0 || item.datasetIndex === 1;
                             }
                         }
@@ -349,9 +369,9 @@
                         callbacks: {
                             label: function(context) {
                                 if (context.datasetIndex === 0 || context.datasetIndex === 2) {
-                                    return `σ_φ = ${context.parsed.y.toFixed(2)} · (F/A₀)`;
+                                    return `σᵩ = ${context.parsed.y.toFixed(2)} · (F/A₀)`;
                                 } else {
-                                    return `τ_φ = ${context.parsed.y.toFixed(2)} · (F/A₀)`;
+                                    return `τᵩ = ${context.parsed.y.toFixed(2)} · (F/A₀)`;
                                 }
                             }
                         }
@@ -510,14 +530,14 @@
             if (sigmaFactor > 0.02) {
                 const nx = cx + sigmaFactor * arrowScale * Math.cos(normalAngle);
                 const ny = cy + sigmaFactor * arrowScale * Math.sin(normalAngle);
-                drawArrow(ctx, cx, cy, nx, ny, '#e53e3e', 3, 10, "σ_φ");
+                drawArrow(ctx, cx, cy, nx, ny, '#e53e3e', 3, 10, "σᵩ");
             }
 
             // Shear Stress Vector tau_phi (ORANGE)
             if (tauFactor > 0.02) {
                 const tx = cx + tauFactor * arrowScale * Math.cos(tangentAngle);
                 const ty = cy + tauFactor * arrowScale * Math.sin(tangentAngle);
-                drawArrow(ctx, cx, cy, tx, ty, '#dd6b20', 3, 10, "τ_φ");
+                drawArrow(ctx, cx, cy, tx, ty, '#dd6b20', 3, 10, "τᵩ");
             }
 
             // Applied Stress Reference Vector sigma_0 (DARK GRAY)
