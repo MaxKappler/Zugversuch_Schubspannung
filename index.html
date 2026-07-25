@@ -106,8 +106,30 @@
         .value-display {
             font-weight: bold;
             font-size: 1.1rem;
-            min-width: 150px;
+            min-width: 200px;
             text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.9em;
+            line-height: 1;
+        }
+
+        .fraction .num {
+            border-bottom: 1px solid currentColor;
+            padding: 0 2px 1px 2px;
+        }
+
+        .fraction .den {
+            padding: 1px 2px 0 2px;
         }
 
         .canvas-container {
@@ -146,29 +168,23 @@
 
         .legend {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             justify-content: center;
+            align-items: center;
             margin-top: 10px;
-            font-size: 0.95rem;
+            font-size: 1rem;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .color-box {
             width: 14px;
             height: 14px;
             border-radius: 3px;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 30px;
-            color: #718096;
-            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -184,27 +200,39 @@
         <div class="card">
             <h2>Zug-Druck-Stab mit geneigter Schnittfläche</h2>
             <p style="font-size: 0.9rem; color: #4a5568; margin-bottom: 10px;">
-                Visuelle Darstellung des rotierten Schnitts und der Spannungsvektoren im Zylinder.
+                Visuelle Darstellung des rotierten Schnitts und der Spannungsvektoren.
             </p>
             <div class="canvas-container">
                 <canvas id="barCanvas" width="550" height="480"></canvas>
             </div>
+            <!-- Unter dem Zylinder: Indizes für Nullen und phi, F/A_0 als Bruch -->
             <div class="legend">
-                <div class="legend-item"><div class="color-box" style="background:#2d3748;"></div> &sigma;<sub>0</sub> = F / A<sub>0</sub></div>
-                <div class="legend-item"><div class="color-box" style="background:#e53e3e;"></div> &sigma;<sub>&phi;</sub> (Normalspannung)</div>
-                <div class="legend-item"><div class="color-box" style="background:#dd6b20;"></div> &tau;<sub>&phi;</sub> (Schubspannung)</div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#2d3748;"></div>
+                    <span>&sigma;<sub>0</sub> = <span class="fraction"><span class="num">F</span><span class="den">A<sub>0</sub></span></span></span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#e53e3e;"></div>
+                    <span>&sigma;<sub>&phi;</sub> (Normalspannung)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#dd6b20;"></div>
+                    <span>&tau;<sub>&phi;</sub> (Schubspannung)</span>
+                </div>
             </div>
         </div>
 
         <!-- RECHTER BEREICH: STEUERUNG, GRAPH & GLEICHUNGEN -->
         <div>
             <div class="card">
-                <!-- SCHIEBEREGLER: Begrenzt auf max. 66.5°, damit Ebene den Zylinder nicht verlässt -->
+                <!-- SCHIEBEREGLER -->
                 <div class="control-panel">
                     <label for="phiSlider"><strong>Winkel &phi;:</strong></label>
                     <div class="slider-group">
                         <input type="range" id="phiSlider" min="0" max="66.5" step="0.5" value="30">
-                        <div class="value-display" id="phiValue">30.0° (0.17 &pi;)</div>
+                        <div class="value-display" id="phiValue">
+                            <!-- JS dynamic value -->
+                        </div>
                     </div>
                 </div>
 
@@ -214,7 +242,7 @@
                 </div>
             </div>
 
-            <!-- GLEICHUNGEN (Sauberes TeX für MathJax) -->
+            <!-- GLEICHUNGEN -->
             <div class="equations-card">
                 <h3>Gleichungen der rotierten Ebene</h3>
                 <div class="eq-list">
@@ -228,10 +256,6 @@
             </div>
         </div>
     </div>
-
-    <footer>
-        <p>Interaktives Lehrmodul zur Technischen Mechanik | GitHub Pages Web-App</p>
-    </footer>
 
     <script>
         const slider = document.getElementById('phiSlider');
@@ -276,7 +300,7 @@
                         tension: 0.1
                     },
                     {
-                        label: 'σ_φ(φ)',
+                        label: 'σ_φ',
                         data: [{x: 30, y: Math.pow(Math.cos(30*Math.PI/180), 2)}],
                         borderColor: '#e53e3e',
                         backgroundColor: '#e53e3e',
@@ -284,7 +308,7 @@
                         showLine: false
                     },
                     {
-                        label: 'τ_φ(φ)',
+                        label: 'τ_φ',
                         data: [{x: 30, y: 0.5*Math.sin(2*30*Math.PI/180)}],
                         borderColor: '#dd6b20',
                         backgroundColor: '#dd6b20',
@@ -306,12 +330,21 @@
                         ticks: { stepSize: 15 }
                     },
                     y: {
-                        title: { display: true, text: 'Spannungsfaktor (Vielfaches von σ₀ = F/A₀)' },
+                        title: { display: true, text: 'σ_φ, τ_φ' },
                         min: 0,
                         max: 1.1
                     }
                 },
                 plugins: {
+                    legend: {
+                        onClick: null, // Deaktiviert das Verstecken/Ausblenden per Klick
+                        labels: {
+                            filter: function(item) {
+                                // Nur die Hauptkurven in der Legende anzeigen
+                                return item.datasetIndex === 0 || item.datasetIndex === 1;
+                            }
+                        }
+                    },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -357,7 +390,12 @@
             ctx.restore();
         }
 
-        // Main Canvas Drawing Function
+        // Helper function for fraction calculation
+        function gcd(a, b) {
+            return b ? gcd(b, a % b) : a;
+        }
+
+        // Main 2D Drawing Function
         function drawScene(phiDeg) {
             const phiRad = phiDeg * Math.PI / 180;
             const w = barCanvas.width;
@@ -406,7 +444,7 @@
             ctx.stroke();
             ctx.restore();
 
-            // 2. Applied Load Vectors F
+            // 2. Applied Load Vectors F (sigma_0 = F/A_0)
             drawArrow(ctx, cx, top - 2, cx, top - 50, '#2d3748', 3, 12, "F (σ₀)");
             drawArrow(ctx, cx, bottom + 2, cx, bottom + 50, '#2d3748', 3, 12, "F (σ₀)");
 
@@ -425,7 +463,7 @@
             ctx.fillStyle = '#718096';
             ctx.fillText('Horizontale Ebene (φ = 0°)', right + 40, cy + 4);
 
-            // 4. Rotated Ellipse Cut Plane (reicht genau von Mantel zu Mantel)
+            // 4. Rotated Ellipse Cut Plane
             const rx = barRadius / Math.max(0.08, Math.cos(phiRad)); 
             const ry = 14; 
 
@@ -433,6 +471,7 @@
             ctx.translate(cx, cy);
             ctx.rotate(-phiRad);
 
+            // Ellipse Cut Fill & Contour
             ctx.beginPath();
             ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(43, 108, 176, 0.3)';
@@ -442,7 +481,7 @@
             ctx.stroke();
             ctx.restore();
 
-            // 5. Angle Phi Arc
+            // 5. Angle Phi
             ctx.save();
             const arcRadius = 45;
             ctx.beginPath();
@@ -451,13 +490,14 @@
             ctx.lineWidth = 2.5;
             ctx.stroke();
 
+            // Label Phi
             const midAngle = -phiRad / 2;
             ctx.fillStyle = '#d69e2e';
             ctx.font = 'bold 16px sans-serif';
             ctx.fillText('φ', cx + (arcRadius + 15) * Math.cos(midAngle), cy + (arcRadius + 15) * Math.sin(midAngle) + 5);
             ctx.restore();
 
-            // 6. Stress Vectors
+            // 6. Interactive Stress Vectors at Plane Center
             const normalAngle = -phiRad - Math.PI / 2;
             const tangentAngle = -phiRad;
 
@@ -466,18 +506,21 @@
 
             const arrowScale = 100;
 
+            // Normal Stress Vector sigma_phi (RED)
             if (sigmaFactor > 0.02) {
                 const nx = cx + sigmaFactor * arrowScale * Math.cos(normalAngle);
                 const ny = cy + sigmaFactor * arrowScale * Math.sin(normalAngle);
                 drawArrow(ctx, cx, cy, nx, ny, '#e53e3e', 3, 10, "σ_φ");
             }
 
+            // Shear Stress Vector tau_phi (ORANGE)
             if (tauFactor > 0.02) {
                 const tx = cx + tauFactor * arrowScale * Math.cos(tangentAngle);
                 const ty = cy + tauFactor * arrowScale * Math.sin(tangentAngle);
                 drawArrow(ctx, cx, cy, tx, ty, '#dd6b20', 3, 10, "τ_φ");
             }
 
+            // Applied Stress Reference Vector sigma_0 (DARK GRAY)
             drawArrow(ctx, cx, cy, cx, cy - 80, '#718096', 1.5, 7, "σ₀");
         }
 
@@ -486,11 +529,29 @@
             const phiDeg = parseFloat(slider.value);
             const phiRad = phiDeg * Math.PI / 180;
             
-            const piFrac = (phiDeg / 180).toFixed(2);
-            valueDisplay.innerHTML = `${phiDeg.toFixed(1)}° (${piFrac} &pi; rad)`;
+            // Exakten Bruch für das Bogenmaß (pi) berechnen
+            const numRaw = Math.round(phiDeg * 2);
+            const denRaw = 360;
+            const commonGcd = gcd(numRaw, denRaw);
+            const num = numRaw / commonGcd;
+            const den = denRaw / commonGcd;
 
+            let fractionHTML = "";
+            if (num === 0) {
+                fractionHTML = `0 &pi; [rad]`;
+            } else if (den === 1) {
+                fractionHTML = `${num} &pi; [rad]`;
+            } else {
+                const numStr = (num === 1) ? "" : `${num}`;
+                fractionHTML = `<span class="fraction"><span class="num">${numStr}&pi;</span><span class="den">${den}</span></span> [rad]`;
+            }
+
+            valueDisplay.innerHTML = `${phiDeg.toFixed(1)}° (${fractionHTML})`;
+
+            // Canvas neu zeichnen
             drawScene(phiDeg);
 
+            // Punkte im Diagramm aktualisieren
             const sigmaVal = Math.pow(Math.cos(phiRad), 2);
             const tauVal = 0.5 * Math.sin(2 * phiRad);
 
@@ -500,6 +561,8 @@
         }
 
         slider.addEventListener('input', update);
+
+        // Initialer Aufruf
         update();
     </script>
 </body>
