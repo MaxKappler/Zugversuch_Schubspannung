@@ -140,7 +140,7 @@
         .eq-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             font-size: 1.05rem;
         }
 
@@ -184,7 +184,7 @@
         <div class="card">
             <h2>Zug-Druck-Stab mit geneigter Schnittfläche</h2>
             <p style="font-size: 0.9rem; color: #4a5568; margin-bottom: 10px;">
-                Visuelle Darstellung des rotierten Schnitts und der Spannungsvektoren.
+                Visuelle Darstellung des rotierten Schnitts und der Spannungsvektoren im Zylinder.
             </p>
             <div class="canvas-container">
                 <canvas id="barCanvas" width="550" height="480"></canvas>
@@ -199,11 +199,11 @@
         <!-- RECHTER BEREICH: STEUERUNG, GRAPH & GLEICHUNGEN -->
         <div>
             <div class="card">
-                <!-- SCHIEBEREGLER OBEN RECHTS -->
+                <!-- SCHIEBEREGLER: Begrenzt auf max. 66.5°, damit Ebene den Zylinder nicht verlässt -->
                 <div class="control-panel">
                     <label for="phiSlider"><strong>Winkel &phi;:</strong></label>
                     <div class="slider-group">
-                        <input type="range" id="phiSlider" min="0" max="85" step="0.5" value="30">
+                        <input type="range" id="phiSlider" min="0" max="66.5" step="0.5" value="30">
                         <div class="value-display" id="phiValue">30.0° (0.17 &pi;)</div>
                     </div>
                 </div>
@@ -214,15 +214,15 @@
                 </div>
             </div>
 
-            <!-- GLEICHUNGEN -->
+            <!-- GLEICHUNGEN (Sauberes TeX für MathJax) -->
             <div class="equations-card">
                 <h3>Gleichungen der rotierten Ebene</h3>
                 <div class="eq-list">
-                    <div><strong>Schnittfläche:</strong> \( A_\phi = rac{A_0}{\cos\phi} \)</div>
-                    <div><strong>Normalspannung:</strong> \( \sigma_\phi = rac{F_\perp}{A_\phi} = rac{F}{A_0} \cos^2\phi = \sigma_0 \cos^2\phi \)</div>
-                    <div><strong>Schubspannung:</strong> \( 	au_\phi = rac{F_\parallel}{A_\phi} = rac{F}{A_0} \sin\phi \cos\phi = rac{\sigma_0}{2} \sin(2\phi) \)</div>
+                    <div><strong>Schnittfläche:</strong> \( A_\phi = \frac{A_0}{\cos\phi} \)</div>
+                    <div><strong>Normalspannung:</strong> \( \sigma_\phi = \frac{F_\perp}{A_\phi} = \frac{F}{A_0} \cos^2\phi = \sigma_0 \cos^2\phi \)</div>
+                    <div><strong>Schubspannung:</strong> \( \tau_\phi = \frac{F_\parallel}{A_\phi} = \frac{F}{A_0} \sin\phi \cos\phi = \frac{\sigma_0}{2} \sin(2\phi) \)</div>
                     <div style="color: #c53030; font-weight: bold; margin-top: 5px;">
-                        Maximalwert der Schubspannung bei \( \phi = 45^\circ \): \( 	au_{\max} = rac{\sigma_0}{2} = rac{F}{2 A_0} \)
+                        Maximalwert der Schubspannung bei \( \phi = 45^\circ \): \( \tau_{\max} = \frac{\sigma_0}{2} = \frac{F}{2 A_0} \)
                     </div>
                 </div>
             </div>
@@ -245,7 +245,7 @@
         const degrees = [];
         const sigmaFactors = [];
         const tauFactors = [];
-        for (let d = 0; d <= 90; d += 1) {
+        for (let d = 0; d <= 90; d += 0.5) {
             degrees.push(d);
             const rad = d * Math.PI / 180;
             sigmaFactors.push(Math.pow(Math.cos(rad), 2));
@@ -357,7 +357,7 @@
             ctx.restore();
         }
 
-        // Main 2D Drawing Function
+        // Main Canvas Drawing Function
         function drawScene(phiDeg) {
             const phiRad = phiDeg * Math.PI / 180;
             const w = barCanvas.width;
@@ -392,7 +392,7 @@
             ctx.fill();
             ctx.stroke();
 
-            // Cylinder Ends (Ellipses)
+            // Cylinder Top & Bottom Deck
             ctx.beginPath();
             ctx.ellipse(cx, top, barRadius, 16, 0, 0, Math.PI * 2);
             ctx.fillStyle = '#e2e8f0';
@@ -406,7 +406,7 @@
             ctx.stroke();
             ctx.restore();
 
-            // 2. Applied Load Vectors F (sigma_0 = F/A_0)
+            // 2. Applied Load Vectors F
             drawArrow(ctx, cx, top - 2, cx, top - 50, '#2d3748', 3, 12, "F (σ₀)");
             drawArrow(ctx, cx, bottom + 2, cx, bottom + 50, '#2d3748', 3, 12, "F (σ₀)");
 
@@ -425,25 +425,24 @@
             ctx.fillStyle = '#718096';
             ctx.fillText('Horizontale Ebene (φ = 0°)', right + 40, cy + 4);
 
-            // 4. Rotated Ellipse Cut Plane (Extends exactly to cylinder edges: radius_x = barRadius / cos(phi))
-            const rx = barRadius / Math.max(0.08, Math.cos(phiRad)); // Ellipse semi-major axis across cylinder
-            const ry = 14; // Ellipse semi-minor axis
+            // 4. Rotated Ellipse Cut Plane (reicht genau von Mantel zu Mantel)
+            const rx = barRadius / Math.max(0.08, Math.cos(phiRad)); 
+            const ry = 14; 
 
             ctx.save();
             ctx.translate(cx, cy);
             ctx.rotate(-phiRad);
 
-            // Ellipse Cut Fill & Contour
             ctx.beginPath();
             ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(43, 108, 176, 0.25)';
+            ctx.fillStyle = 'rgba(43, 108, 176, 0.3)';
             ctx.fill();
             ctx.strokeStyle = '#2b6cb0';
             ctx.lineWidth = 2.5;
             ctx.stroke();
             ctx.restore();
 
-            // 5. Angle Phi (Correctly drawn from horizontal reference to rotated plane line)
+            // 5. Angle Phi Arc
             ctx.save();
             const arcRadius = 45;
             ctx.beginPath();
@@ -452,37 +451,33 @@
             ctx.lineWidth = 2.5;
             ctx.stroke();
 
-            // Label Phi
             const midAngle = -phiRad / 2;
             ctx.fillStyle = '#d69e2e';
             ctx.font = 'bold 16px sans-serif';
             ctx.fillText('φ', cx + (arcRadius + 15) * Math.cos(midAngle), cy + (arcRadius + 15) * Math.sin(midAngle) + 5);
             ctx.restore();
 
-            // 6. Interactive Stress Vectors at Plane Center
-            const normalAngle = -phiRad - Math.PI / 2; // Normal vector to rotated plane
-            const tangentAngle = -phiRad;             // Shear vector parallel to rotated plane
+            // 6. Stress Vectors
+            const normalAngle = -phiRad - Math.PI / 2;
+            const tangentAngle = -phiRad;
 
             const sigmaFactor = Math.pow(Math.cos(phiRad), 2);
             const tauFactor = 0.5 * Math.sin(2 * phiRad);
 
-            const arrowScale = 100; // Visual scaling factor for vectors
+            const arrowScale = 100;
 
-            // Normal Stress Vector sigma_phi (RED)
             if (sigmaFactor > 0.02) {
                 const nx = cx + sigmaFactor * arrowScale * Math.cos(normalAngle);
                 const ny = cy + sigmaFactor * arrowScale * Math.sin(normalAngle);
                 drawArrow(ctx, cx, cy, nx, ny, '#e53e3e', 3, 10, "σ_φ");
             }
 
-            // Shear Stress Vector tau_phi (ORANGE)
             if (tauFactor > 0.02) {
                 const tx = cx + tauFactor * arrowScale * Math.cos(tangentAngle);
                 const ty = cy + tauFactor * arrowScale * Math.sin(tangentAngle);
                 drawArrow(ctx, cx, cy, tx, ty, '#dd6b20', 3, 10, "τ_φ");
             }
 
-            // Applied Stress Reference Vector sigma_0 (DARK GRAY)
             drawArrow(ctx, cx, cy, cx, cy - 80, '#718096', 1.5, 7, "σ₀");
         }
 
@@ -494,10 +489,8 @@
             const piFrac = (phiDeg / 180).toFixed(2);
             valueDisplay.innerHTML = `${phiDeg.toFixed(1)}° (${piFrac} &pi; rad)`;
 
-            // Redraw 2D Canvas Scene
             drawScene(phiDeg);
 
-            // Update Chart Tracking Points strictly on the curve datasets
             const sigmaVal = Math.pow(Math.cos(phiRad), 2);
             const tauVal = 0.5 * Math.sin(2 * phiRad);
 
@@ -507,8 +500,6 @@
         }
 
         slider.addEventListener('input', update);
-
-        // Initial trigger
         update();
     </script>
 </body>
