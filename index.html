@@ -103,11 +103,11 @@
             cursor: pointer;
         }
 
-        /* Konstante Größe für die Anzeige-Box des Schiebereglers */
+        /* Feste Größe für Schieberegler-Anzeige */
         .value-display {
             font-weight: bold;
             font-size: 1.1rem;
-            width: 250px; /* Feste Breite zur Vermeidung von Größenänderungen */
+            width: 250px;
             min-width: 250px;
             max-width: 250px;
             text-align: right;
@@ -172,17 +172,18 @@
 
         .legend {
             display: flex;
-            gap: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
             justify-content: center;
             align-items: center;
             margin-top: 10px;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .color-box {
@@ -204,12 +205,12 @@
         <div class="card">
             <h2>Zug-Druck-Stab mit geneigter Schnittfläche</h2>
             <p style="font-size: 0.9rem; color: #4a5568; margin-bottom: 10px;">
-                Visuelle Darstellung des rotierten Schnitts und der Spannungsvektoren.
+                Visuelle Darstellung der Vektoraddition: &sigma;<sub>&phi;</sub> + &tau;<sub>&phi;</sub> = &sigma;<sub>res</sub>.
             </p>
             <div class="canvas-container">
                 <canvas id="barCanvas" width="550" height="480"></canvas>
             </div>
-            <!-- Unter dem Zylinder: Indizes für Nullen und phi, F/A_0 als Bruch -->
+            <!-- Legende mit Vektorsumme -->
             <div class="legend">
                 <div class="legend-item">
                     <div class="color-box" style="background:#2d3748;"></div>
@@ -217,11 +218,15 @@
                 </div>
                 <div class="legend-item">
                     <div class="color-box" style="background:#e53e3e;"></div>
-                    <span>&sigma;<sub>&phi;</sub> (Normalspannung)</span>
+                    <span>&sigma;<sub>&phi;</sub></span>
                 </div>
                 <div class="legend-item">
                     <div class="color-box" style="background:#dd6b20;"></div>
-                    <span>&tau;<sub>&phi;</sub> (Schubspannung)</span>
+                    <span>&tau;<sub>&phi;</sub></span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#805ad5;"></div>
+                    <span>&sigma;<sub>res</sub> = &sigma;<sub>&phi;</sub> + &tau;<sub>&phi;</sub></span>
                 </div>
             </div>
         </div>
@@ -253,6 +258,7 @@
                     <div><strong>Schnittfläche:</strong> \( A_\phi = \frac{A_0}{\cos\phi} \)</div>
                     <div><strong>Normalspannung:</strong> \( \sigma_\phi = \frac{F_\perp}{A_\phi} = \frac{F}{A_0} \cos^2\phi = \sigma_0 \cos^2\phi \)</div>
                     <div><strong>Schubspannung:</strong> \( \tau_\phi = \frac{F_\parallel}{A_\phi} = \frac{F}{A_0} \sin\phi \cos\phi = \frac{\sigma_0}{2} \sin(2\phi) \)</div>
+                    <div><strong>Vektorieller Zusammenhang:</strong> \( \vec{\sigma}_{\text{res}} = \vec{\sigma}_\phi + \vec{\tau}_\phi \)</div>
                     <div style="color: #c53030; font-weight: bold; margin-top: 5px;">
                         Maximalwert der Schubspannung bei \( \phi = 45^\circ \): \( \tau_{\max} = \frac{\sigma_0}{2} = \frac{F}{2 A_0} \)
                     </div>
@@ -520,31 +526,62 @@
             ctx.fillText('φ', cx + (arcRadius + 15) * Math.cos(midAngle), cy + (arcRadius + 15) * Math.sin(midAngle) + 5);
             ctx.restore();
 
-            // 6. Interactive Stress Vectors at Plane Center
+            // 6. Interactive Stress Vectors & Parallelogram (Addition)
             const normalAngle = -phiRad - Math.PI / 2;
             const tangentAngle = -phiRad;
 
             const sigmaFactor = Math.pow(Math.cos(phiRad), 2);
             const tauFactor = 0.5 * Math.sin(2 * phiRad);
 
-            const arrowScale = 100;
+            const arrowScale = 110;
+
+            // Endpoints of vectors relative to center (cx, cy)
+            const nx = cx + sigmaFactor * arrowScale * Math.cos(normalAngle);
+            const ny = cy + sigmaFactor * arrowScale * Math.sin(normalAngle);
+
+            const tx = cx + tauFactor * arrowScale * Math.cos(tangentAngle);
+            const ty = cy + tauFactor * arrowScale * Math.sin(tangentAngle);
+
+            // Sum vector endpoint (Resultant stress vector = sigma_0 * cos(phi) directed vertically)
+            const resX = nx + (tx - cx);
+            const resY = ny + (ty - cy);
+
+            // Draw Dashed Parallelogram Lines to show vector addition
+            if (phiDeg > 0.5) {
+                ctx.save();
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = '#a0aec0';
+                ctx.lineWidth = 1.5;
+
+                // Line from Normal Vector End to Resultant End
+                ctx.beginPath();
+                ctx.moveTo(nx, ny);
+                ctx.lineTo(resX, resY);
+                ctx.stroke();
+
+                // Line from Tangent Vector End to Resultant End
+                ctx.beginPath();
+                ctx.moveTo(tx, ty);
+                ctx.lineTo(resX, resY);
+                ctx.stroke();
+                ctx.restore();
+
+                // Resultant Vector (PURPLE)
+                drawArrow(ctx, cx, cy, resX, resY, '#805ad5', 2.5, 9, "σᵣₑₛ");
+            }
 
             // Normal Stress Vector sigma_phi (RED)
-            if (sigmaFactor > 0.02) {
-                const nx = cx + sigmaFactor * arrowScale * Math.cos(normalAngle);
-                const ny = cy + sigmaFactor * arrowScale * Math.sin(normalAngle);
+            if (sigmaFactor > 0.01) {
                 drawArrow(ctx, cx, cy, nx, ny, '#e53e3e', 3, 10, "σᵩ");
             }
 
             // Shear Stress Vector tau_phi (ORANGE)
-            if (tauFactor > 0.02) {
-                const tx = cx + tauFactor * arrowScale * Math.cos(tangentAngle);
-                const ty = cy + tauFactor * arrowScale * Math.sin(tangentAngle);
+            if (tauFactor > 0.01) {
                 drawArrow(ctx, cx, cy, tx, ty, '#dd6b20', 3, 10, "τᵩ");
             }
 
             // Applied Stress Reference Vector sigma_0 (DARK GRAY)
-            drawArrow(ctx, cx, cy, cx, cy - 80, '#718096', 1.5, 7, "σ₀");
+            drawArrow(ctx, cx, cy, cx, cy - arrowScale, '#718096', 1.5, 7, "σ₀");
         }
 
         // Update Handler
