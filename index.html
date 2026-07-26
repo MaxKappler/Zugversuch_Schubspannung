@@ -75,6 +75,7 @@
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
         }
 
         .control-panel {
@@ -103,7 +104,6 @@
             cursor: pointer;
         }
 
-        /* Feste Größe für Schieberegler-Anzeige */
         .value-display {
             font-weight: bold;
             font-size: 1.1rem;
@@ -191,6 +191,56 @@
             height: 14px;
             border-radius: 3px;
         }
+
+        /* NEU: Styling für den Bild- und Textabschnitt */
+        .materials-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            align-items: center;
+        }
+
+        @media (max-width: 600px) {
+            .materials-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .materials-img-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .materials-img-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #cbd5e0;
+        }
+
+        .citation {
+            font-size: 0.75rem;
+            color: #718096;
+            margin-top: 6px;
+            text-align: center;
+            word-break: break-all;
+        }
+
+        .citation a {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .materials-text {
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        .materials-text h4 {
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body>
@@ -201,32 +251,56 @@
     </header>
 
     <div class="container">
-        <!-- LINKER BEREICH: INTERAKTIVES STABMODELL -->
-        <div class="card">
-            <h2>Zug-Druck-Stab mit geneigter Schnittfläche (Netzebene)</h2>
-            <p style="font-size: 0.9rem; color: #4a5568; margin-bottom: 10px;">
-                Visuelle Darstellung des Spannungszustandes: &sigma;<sub>&phi;</sub> + &tau;<sub>&phi;</sub> = &sigma;<sub>res</sub>.
-            </p>
-            <div class="canvas-container">
-                <canvas id="barCanvas" width="550" height="480"></canvas>
+        <!-- LINKER BEREICH: INTERAKTIVES STABMODELL & BILD-SECTION -->
+        <div>
+            <div class="card">
+                <h2>Zug-Druck-Stab mit geneigter Schnittfläche (Netzebene)</h2>
+                <p style="font-size: 0.9rem; color: #4a5568; margin-bottom: 10px;">
+                    Visuelle Darstellung des Spannungszustandes: &sigma;<sub>&phi;</sub> + &tau;<sub>&phi;</sub> = &sigma;<sub>res</sub>.
+                </p>
+                <div class="canvas-container">
+                    <canvas id="barCanvas" width="550" height="480"></canvas>
+                </div>
+                <!-- Legende mit Vektorsumme -->
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="color-box" style="background:#2d3748;"></div>
+                        <span>&sigma;<sub>0</sub> = <span class="fraction"><span class="num">F</span><span class="den">A<sub>0</sub></span></span></span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box" style="background:#e53e3e;"></div>
+                        <span>&sigma;<sub>&phi;</sub></span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box" style="background:#dd6b20;"></div>
+                        <span>&tau;<sub>&phi;</sub></span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box" style="background:#805ad5;"></div>
+                        <span>&sigma;<sub>res</sub> = &sigma;<sub>&phi;</sub> + &tau;<sub>&phi;</sub></span>
+                    </div>
+                </div>
             </div>
-            <!-- Legende mit Vektorsumme -->
-            <div class="legend">
-                <div class="legend-item">
-                    <div class="color-box" style="background:#2d3748;"></div>
-                    <span>&sigma;<sub>0</sub> = <span class="fraction"><span class="num">F</span><span class="den">A<sub>0</sub></span></span></span>
-                </div>
-                <div class="legend-item">
-                    <div class="color-box" style="background:#e53e3e;"></div>
-                    <span>&sigma;<sub>&phi;</sub></span>
-                </div>
-                <div class="legend-item">
-                    <div class="color-box" style="background:#dd6b20;"></div>
-                    <span>&tau;<sub>&phi;</sub></span>
-                </div>
-                <div class="legend-item">
-                    <div class="color-box" style="background:#805ad5;"></div>
-                    <span>&sigma;<sub>res</sub> = &sigma;<sub>&phi;</sub> + &tau;<sub>&phi;</sub></span>
+
+            <!-- NEUER BEREICH: BILD LINKS, TEXT RECHTS -->
+            <div class="card">
+                <div class="materials-section">
+                    <div class="materials-img-container">
+                        <img src="Screenshot 2026-07-26 141739.png" alt="Mikrostruktur Abgleiten unter 45 Grad">
+                        <div class="citation">
+                            Quelle: Tian, Chunhua, et al., <i>Materials & Design</i> 238 (2024): 112630. 
+                            <br><a href="https://doi.org/10.1016/j.matdes.2024.112630" target="_blank">doi:10.1016/j.matdes.2024.112630</a>
+                        </div>
+                    </div>
+                    <div class="materials-text">
+                        <h4>Werkstoffkundliche Relevanz</h4>
+                        <p>
+                            Gleitsysteme (Kristallebenen), die unter einem Winkel von ca. <strong>45°</strong> zur angelegten Normalspannung orientiert sind, erfahren die <strong>maximale Schubspannung</strong> (\(\tau_{\max}\)). 
+                        </p>
+                        <p style="margin-top: 8px;">
+                            Da plastische Verformung in Metallen primär durch Abscheren von Atomlagen getrieben wird, aktivieren diese Ebenen als Erstes und führen zum charakteristischen Abgleiten des Werkstoffs.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
