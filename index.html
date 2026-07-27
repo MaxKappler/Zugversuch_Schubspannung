@@ -14,6 +14,7 @@
             --primary: #008080;
             --accent-red: #e53e3e;
             --accent-blue: #2563eb;
+            --accent-green: #16a34a;
             --bg-color: #f7fafc;
             --card-bg: #ffffff;
             --text-color: #2d3748;
@@ -564,7 +565,7 @@
             ctx.fillStyle = '#718096';
             ctx.fillText('Horizontale Ebene (φ = 0°)', right + 40, cy + 4);
 
-            // 4. Rotated Ellipse Cut Plane
+            // 4. Rotated Ellipse Cut Plane (GRÜN)
             const rx = barRadius / Math.max(0.08, Math.cos(phiRad)); 
             const ry = 14; 
 
@@ -575,10 +576,10 @@
             // Ellipse Cut Fill & Contour
             ctx.beginPath();
             ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(160, 174, 192, 0.25)';
+            ctx.fillStyle = 'rgba(22, 163, 74, 0.25)'; // Halbtransparentes Grün
             ctx.fill();
-            ctx.strokeStyle = '#718096';
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#16a34a';             // Kräftiges Grün für die Umrandung
+            ctx.lineWidth = 2.5;
             ctx.stroke();
             ctx.restore();
 
