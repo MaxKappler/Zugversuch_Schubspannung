@@ -13,8 +13,7 @@
         :root {
             --primary: #008080;
             --accent-red: #e53e3e;
-            --accent-orange: #dd6b20;
-            --accent-blue: #2B6CB0;
+            --accent-blue: #2563eb;
             --bg-color: #f7fafc;
             --card-bg: #ffffff;
             --text-color: #2d3748;
@@ -192,7 +191,6 @@
             border-radius: 3px;
         }
 
-        /* NEU: Styling für den Bild- und Textabschnitt */
         .materials-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -272,7 +270,7 @@
                         <span>&sigma;<sub>&phi;</sub></span>
                     </div>
                     <div class="legend-item">
-                        <div class="color-box" style="background:#dd6b20;"></div>
+                        <div class="color-box" style="background:#2563eb;"></div>
                         <span>&tau;<sub>&phi;</sub></span>
                     </div>
                     <div class="legend-item">
@@ -282,7 +280,7 @@
                 </div>
             </div>
 
-            <!-- NEUER BEREICH: BILD LINKS, TEXT RECHTS -->
+            <!-- BILD LINKS, TEXT RECHTS -->
             <div class="card">
                 <div class="materials-section">
                     <div class="materials-img-container">
@@ -377,8 +375,8 @@
                     {
                         label: 'Schubspannung τᵩ',
                         data: tauFactors,
-                        borderColor: '#dd6b20',
-                        backgroundColor: 'rgba(221, 107, 32, 0.1)',
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
                         borderWidth: 2,
                         pointRadius: 0,
                         tension: 0.1
@@ -394,8 +392,8 @@
                     {
                         label: 'τᵩ',
                         data: [{x: 30, y: 0.5*Math.sin(2*30*Math.PI/180)}],
-                        borderColor: '#dd6b20',
-                        backgroundColor: '#dd6b20',
+                        borderColor: '#2563eb',
+                        backgroundColor: '#2563eb',
                         pointRadius: 6,
                         showLine: false
                     }
@@ -577,10 +575,10 @@
             // Ellipse Cut Fill & Contour
             ctx.beginPath();
             ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(43, 108, 176, 0.3)';
+            ctx.fillStyle = 'rgba(160, 174, 192, 0.25)';
             ctx.fill();
-            ctx.strokeStyle = '#2b6cb0';
-            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#718096';
+            ctx.lineWidth = 2;
             ctx.stroke();
             ctx.restore();
 
@@ -600,7 +598,7 @@
             ctx.fillText('φ', cx + (arcRadius + 15) * Math.cos(midAngle), cy + (arcRadius + 15) * Math.sin(midAngle) + 5);
             ctx.restore();
 
-            // 6. Interactive Stress Vectors & Parallelogram (Addition)
+            // 6. Interactive Stress Vectors & Parallelogram
             const normalAngle = -phiRad - Math.PI / 2;
             const tangentAngle = -phiRad;
 
@@ -616,24 +614,22 @@
             const tx = cx + tauFactor * arrowScale * Math.cos(tangentAngle);
             const ty = cy + tauFactor * arrowScale * Math.sin(tangentAngle);
 
-            // Sum vector endpoint (Resultant stress vector = sigma_0 * cos(phi) directed vertically)
+            // Sum vector endpoint
             const resX = nx + (tx - cx);
             const resY = ny + (ty - cy);
 
-            // Draw Dashed Parallelogram Lines to show vector addition
+            // Draw Dashed Parallelogram Lines
             if (phiDeg > 0.5) {
                 ctx.save();
                 ctx.setLineDash([4, 4]);
                 ctx.strokeStyle = '#a0aec0';
                 ctx.lineWidth = 1.5;
 
-                // Line from Normal Vector End to Resultant End
                 ctx.beginPath();
                 ctx.moveTo(nx, ny);
                 ctx.lineTo(resX, resY);
                 ctx.stroke();
 
-                // Line from Tangent Vector End to Resultant End
                 ctx.beginPath();
                 ctx.moveTo(tx, ty);
                 ctx.lineTo(resX, resY);
@@ -649,9 +645,9 @@
                 drawArrow(ctx, cx, cy, nx, ny, '#e53e3e', 3, 10, "σᵩ");
             }
 
-            // Shear Stress Vector tau_phi (ORANGE)
+            // Shear Stress Vector tau_phi (BLUE)
             if (tauFactor > 0.01) {
-                drawArrow(ctx, cx, cy, tx, ty, '#dd6b20', 3, 10, "τᵩ");
+                drawArrow(ctx, cx, cy, tx, ty, '#2563eb', 3, 10, "τᵩ");
             }
 
             // Applied Stress Reference Vector sigma_0 (DARK GRAY)
